@@ -4,8 +4,18 @@ from pygame.locals import *
 from enemy import Enemy
 from world import World
 from jugador import Player
-import datetime
 from pyvidplayer import Video
+
+#agregar projectiles shrek
+#que los enemigos se generen aleatoriamente.
+#agregar cronometro, bajar puntos si tarda mas.
+#trampa
+#niveles check
+#agregar sonido cuando se muere el enemigo
+# settings, efectos de sonido, on y off musica ambiental on y off, guardar partida, no necesaria.
+#para interfaz de usuario pantalla principal, pantalla de pausa, settings, puntuaciones, pantalla win lose
+#manejo de archivos: info niveles en archivo.  guardar settings.
+#excepciones
 
 pygame.init()
 
@@ -134,6 +144,8 @@ class Enemy(pygame.sprite.Sprite):
             self.push_frames -= 1
             # Agregar desplazamiento vertical hacia arriba
             self.rect.y -= self.push_distance
+            
+            
         player_collision = pygame.sprite.spritecollide(self, pygame.sprite.GroupSingle(player), False)
         
         if player_collision:
@@ -326,7 +338,7 @@ class Player(pygame.sprite.Sprite):
                         self.image = pygame.transform.flip(self.images_jump[self.index], True, False)
                     elif self.direction == 1:
                         self.image = self.images_jump[self.index]
-                    self.index += 1  # Agregar esta línea para actualizar el índice de la animación
+                    self.index += 1  #act
 
                 else:
                     if self.direction == 1:
@@ -422,7 +434,7 @@ class Player(pygame.sprite.Sprite):
                     self.rect.x += platform.move_direction_x
                     
             #if not platform_collision:
-                #self.can_jump = False  # Evita que el personaje salte en el aire
+                #self.can_jump = False  # Modo debugging
                 
         #si esta muerto
         else:
@@ -515,7 +527,7 @@ class BossFinal(pygame.sprite.Sprite):
         self.hit_duration = 5  # Duración de la animación de golpe en fotogramas
 
     def update(self):
-        if self.rect.x < self.player.rect.x:
+        if self.rect.x + 5 < self.player.rect.x:
             self.direction = 1
         else:
             self.direction = -1

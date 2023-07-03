@@ -26,9 +26,9 @@ class World:
         platform8 = Platform(10, screen_height - 400, 50, 20, 'img/fotos/hielo.png',move_range_y = 50, is_moving_y=True)
         platform9 = Platform(400, screen_height - 520, 50, 20, 'img/fotos/hielo.png')
         platform10 = Platform(500, screen_height - 520, 50, 20, 'img/fotos/hielo.png', move_range_y = 50)
-        platform11 = Platform(650, screen_height - 600, 100, 20, 'img/fotos/hielo.png', move_range_y = 50)
 
-        self.platforms.add(platform1, platform2, platform3, platform4, platform5, platform6, platform7, platform8, platform9, platform10, platform11)
+
+        self.platforms.add(platform1, platform2, platform3, platform4, platform5, platform6, platform7, platform8, platform9, platform10)
         # Generar monedas con posiciones aleatorias
         num_coins = 5  # Número de monedas que deseas crear
         for _ in range(num_coins):

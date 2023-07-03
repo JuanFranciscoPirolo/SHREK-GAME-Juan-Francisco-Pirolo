@@ -19,7 +19,154 @@ pygame.mixer.init()
 punch_sound = pygame.mixer.Sound("audio/Efecto de sonido- Golpe.mp3")
 coin_sound = pygame.mixer.Sound("audio/coin.wav")
 
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self, x, y, limit_right, limit_left):
+        pygame.sprite.Sprite.__init__(self)
+        self.images_right = []
+        self.images_left = []
+        self.images_hit = []
+        self.images_hit_left = []
+        self.index = 0
+        self.counter = 0
+        self.direction = 1
+        self.speed = 2
+        self.vel_y = 0
+        self.gravity = 0.8
+        self.player = None
+        self.follow_timer = 0
+        self.attack_timer = 0  # temporizador para los ataques
+        self.attack_delay = 150  # Intervalo de tiempo entre ataques y quite de vida
+        self.health = 100  # Valor inicial de la vida
+        self.push_duration = 10  # Duración del empuje en fotogramas
+        self.push_distance = 10  # Distancia del empuje en píxeles
+        self.push_frames = 0  # Fotogramas restantes del empuje
+        
+        
+        for num in range(1, 3):
+            img_right = pygame.image.load(f'img/enemigos/{num}.png')
+            img_right = pygame.transform.scale(img_right, (40, 70))
+            img_left = pygame.transform.flip(img_right, True, False)
+            self.images_right.append(img_right)
+            self.images_left.append(img_left)
+            
+        for num in range(2, 4):
+            img_hit = pygame.image.load(f'img/enemigos/{num}.png')
+            img_hit = pygame.transform.scale(img_hit, (40, 70))
+            img_hit_left = pygame.transform.flip(img_hit, True, False)
+            self.images_hit_left.append(img_hit_left)
+            self.images_hit.append(img_hit)
+            
+        self.images_normal = self.images_right
+        self.image = self.images_normal[self.index]
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.limit_right = limit_right
+        self.limit_left = limit_left
+
+    def update(self):
+        if self.push_frames > 0:
+            if self.push_frames % 2 == 0:
+                self.rect.x -= self.push_distance
+            else:
+                self.rect.x += self.push_distance
+            self.push_frames -= 1
+            # Agregar desplazamiento vertical hacia arriba
+            self.rect.y -= self.push_distance
+            
+            
+        player_collision = pygame.sprite.spritecollide(self, pygame.sprite.GroupSingle(player), False)
+        
+        if player_collision:
+            if self.rect.x < player.rect.x:
+                self.direction = 1
+            else:
+                self.direction = -1
+            
+            if VIDAS > 0:
+                self.rect.x += self.direction * self.speed
+                self.speed = 0  # Mantener al enemigo quieto después de colisionar
+                
+                # Realizar ataque si ha pasado suficiente tiempo desde el último ataque
+                if self.attack_timer <= 0:
+                    if self.direction == 1:
+                        self.image = self.images_hit[self.index]
+                    else:
+                        self.image = self.images_hit_left[self.index]
+                    lose_life()
+                    self.attack_timer = self.attack_delay
+                    self.index = 0  # Reseteo el index de la animacion
+                else:
+                    self.attack_timer -= 1
+                    if self.direction == 1:
+                        self.image = self.images_hit[self.index]
+                    else:
+                        self.image = self.images_hit_left[self.index]
+            else:
+                self.speed = 1
+                self.rect.x += self.direction * self.speed
+                if self.rect.right >= self.limit_right or self.rect.left <= self.limit_left:
+                    self.direction *= -1
+                self.image = self.images_right[self.index] if self.direction == 1 else self.images_left[self.index]
+        else:
+            self.speed = 2
+            self.rect.x += self.direction * self.speed
+            if self.rect.right >= self.limit_right or self.rect.left <= self.limit_left:
+                self.direction *= -1
+            self.image = self.images_right[self.index] if self.direction == 1 else self.images_left[self.index]
+        
+        self.rect.y += self.vel_y
+        self.vel_y += self.gravity
+        
+        platform_collision = pygame.sprite.spritecollide(self, world.platforms, False)
+        for platform in platform_collision:
+            #si esta cayendo
+            if self.vel_y > 0:
+                #borde inferior del enemigo con la parte superior de la plataforma
+                self.rect.bottom = platform.rect.top
+                self.vel_y = 0
+            elif self.vel_y < 0:
+                self.rect.top = platform.rect.bottom
+                self.vel_y = 0
+        
+        #Animacion de las imagenes del enemigo.
+        self.counter += 1
+        #Cuando el contador de imagenes supera las 10 se produce la animacion
+        if self.counter >= 10:
+            self.counter = 0
+            self.index += 1
+            if self.index >= len(self.images_right):
+                self.index = 0
+        
+        # Verificar si el enemigo y el jugador están superpuestos
+        if pygame.sprite.collide_rect(self, player):
+            self.speed = 0  # Detener el movimiento del enemigo
+        self.draw_health_bar()
+        screen.blit(self.image, self.rect)
+    def draw_health_bar(self):
+        bar_width = 50
+        bar_height = 5
+        bar_x = self.rect.x + (self.rect.width - bar_width) / 2
+        bar_y = self.rect.y - bar_height - 5
+
+        # Calcular la longitud de la barra de vida en función del valor actual de self.health
+        health_width = (self.health / 100) * bar_width
+
+        # Dibujar el fondo de la barra de vida
+        pygame.draw.rect(screen, (255, 0, 0), (bar_x, bar_y, bar_width, bar_height))
+
+        # Dibujar la barra de vida actual
+        pygame.draw.rect(screen, (0, 255, 0), (bar_x, bar_y, health_width, bar_height))
+        
+    def reduce_health(self, amount):
+        self.health -= amount
+        print(self.health)
+        if self.health <= 0:
+            self.kill()  # Eliminar el enemigo cuando su vida llega a 0 o menos
+        else:
+            self.push_frames = self.push_duration  # Activar el empuje
 class Player(pygame.sprite.Sprite):
+    
     def __init__(self, x, y):
         super().__init__()
         self.images_jump = []
@@ -63,7 +210,7 @@ class Player(pygame.sprite.Sprite):
         self.direction = 0  # Variable para controlar la dirección del jugador (1 para derecha, -1 para izquierda)
         self.jumped = False  # Variable para controlar si el jugador está saltando
         self.punch = False
-        
+        self.can_jump = True
     def update(self):
         dx = 0  # Desplazamiento en el eje x
         dy = 0  # Desplazamiento en el eje y
@@ -77,9 +224,8 @@ class Player(pygame.sprite.Sprite):
                 self.punch = True
                 self.counter = 0  # Reiniciar el contador para la animación de golpe
                 self.index = 0  # Reiniciar el índice para la animación de golpe
-
         
-        if not key[pygame.K_SPACE]:
+        if not key[pygame.K_SPACE] and self.can_jump:
             self.jumped = False
         
         if not key[pygame.K_RETURN]:
@@ -106,7 +252,8 @@ class Player(pygame.sprite.Sprite):
         if VIDAS > 0:
             if not key[pygame.K_LEFT] and not key[pygame.K_RIGHT]:
                 self.counter += 1
-                if self.counter > walk_cooldown:
+                #controlo la velocidad de la animacion
+                if self.counter >= walk_cooldown:
                     self.counter = 0
                     self.index += 1
 
@@ -121,7 +268,7 @@ class Player(pygame.sprite.Sprite):
                         self.image = pygame.transform.flip(self.images_jump[self.index], True, False)
                     elif self.direction == 1:
                         self.image = self.images_jump[self.index]
-                    self.index += 1  # Agregar esta línea para actualizar el índice de la animación
+                    self.index += 1  #act
 
                 else:
                     if self.direction == 1:
@@ -137,8 +284,7 @@ class Player(pygame.sprite.Sprite):
                         enemy_collision = pygame.sprite.spritecollide(self, world.enemies, False)
                         for enemy in enemy_collision:
                             enemy.reduce_health(20)
-                            punch_sound.play()
-                            punch_sound.set_volume(0.05)
+ 
                             if enemy.health <= 0:
                                 enemy.kill()  # Elimina el enemigo si su vida llega a cero
                             
@@ -172,11 +318,9 @@ class Player(pygame.sprite.Sprite):
             if self.vel_y > 10:
                 self.vel_y = 10
             dy += self.vel_y
-            
-            # Para que no se vaya debajo de la pantalla
+            #si el jugador se cae
             if self.rect.bottom > screen_height:
-                self.rect.bottom = screen_height
-                dy = 0 
+                lose_life()
             
 
             self.rect.x += dx
@@ -207,26 +351,30 @@ class Player(pygame.sprite.Sprite):
                     self.rect.bottom = platform.rect.top
                     self.vel_y = 0
                     self.jumped = False
+                    self.can_jump = True  # Permite saltar nuevamente al tocar una plataforma
                 elif dy < 0:  # saltando
                     self.rect.top = platform.rect.bottom
                     self.vel_y = 0
+
                 if platform.is_moving_y and platform.move_range_y != 0:
                     self.rect.y += platform.move_direction_y
                     
                 if platform.is_moving and platform.move_range_x != 0:
                     self.rect.x += platform.move_direction_x
-            # Para que no vibre cuando toca el piso
-            if dy == 0:
-                self.vel_y = 0
-    
+                    
+            #if not platform_collision:
+                #self.can_jump = False  # Modo debugging
+                
         #si esta muerto
         else:
+            pygame.mixer.music.stop()
             self.image = self.dead_image
             if self.rect.y > 10:
                     self.rect.y -= 3
                     self.rect.x += 5
             else:
                 self.kill()
+        #pygame.draw.rect(screen, "red", self.rect, 2)
     def check_collision(self):
         self.collided_enemies = pygame.sprite.spritecollide(self, world.enemies, False)
 
@@ -240,8 +388,8 @@ class Player(pygame.sprite.Sprite):
             enemy.reduce_health(20)
             if enemy.health <= 0:
                 enemy.kill()  # Elimina el enemigo si su vida llega a cero
-                
         screen.blit(self.image, self.rect)
         self.collided_enemies = []
-
+        
 world = World()
+player = Player(30, screen_height - 40 - 70)
