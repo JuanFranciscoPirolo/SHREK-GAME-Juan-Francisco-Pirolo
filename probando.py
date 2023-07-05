@@ -1,36 +1,35 @@
 import pygame
 import pygame.mixer
+import sys
 from pygame.locals import *
-from enemy import Enemy
-from world import World
-from jugador import Player
 from level1 import Level1
 from level2 import Level2
 from level3 import Level3
 from pyvidplayer import Video
 from temporizador import Timer
+from boton import Button
 
 #solucionar error dragon
-#agregar sonido nivel 3
+#agregar sonido nivel 3 listo
 #agregar projectiles shrek
 #que los enemigos se generen aleatoriamente.
-#agregar cronometro, bajar puntos si tarda mas.
+#agregar cronometro, bajar puntos si tarda mas. listo
 #trampa
-#niveles
-#agregar sonido cuando se muere el enemigo
+#niveles listo
+#agregar sonido cuando se muere el enemigo listo
 # settings, efectos de sonido, on y off musica ambiental on y off, guardar partida, no necesaria.
 #para interfaz de usuario pantalla principal, pantalla de pausa, settings, puntuaciones, pantalla win lose
 #manejo de archivos: info niveles en archivo.  guardar settings.
 
 pygame.init()
-
 #Configuracion de musica
+death_sound_zombie = pygame.mixer.Sound("audio/Minecraft Zombie Snarl   Efecto de sonido HD.mp3")
 fire_sound = pygame.mixer.Sound("audio/Efecto de Sonido - Fuego (Incendio).mp3")
 death_sound = pygame.mixer.Sound("audio/Sonido de muerte de Fortnite-Death Fortnite sound.mp3")
 life_sound = pygame.mixer.Sound("audio/Sonido de experiencia en minecraft.mp3")
 coin_sound = pygame.mixer.Sound("audio/coin.wav")
 punch_sound = pygame.mixer.Sound("audio/Efecto de sonido- Golpe.mp3")
-
+main_menu = True
 #FPS
 clock = pygame.time.Clock()
 fps = 60
@@ -47,12 +46,25 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 #pygame.mixer.music.play(-1)  # Suena
 
 # Imágenes cargadas
+reset_button_image = pygame.image.load("img/restart.png")
+reset_button_image = pygame.transform.scale(reset_button_image, (100, 100))
+reset_button_rect = reset_button_image.get_rect(center=(screen_width // 2, screen_height // 2 + 130))
+boton_numero_uno = pygame.image.load("botones/numero_uno-removebg-preview.png")
+boton_numero_uno = pygame.transform.scale(boton_numero_uno,(145, 145))
+boton_numero_rect_uno = boton_numero_uno.get_rect(center=(screen_width // 2, screen_height // 2 + 130))
+boton_numero_dos = pygame.image.load("botones/numero_dos-transformed-removebg-preview.png")
+boton_numero_dos = pygame.transform.scale(boton_numero_dos,(145, 145))
+boton_numero_rect_dos = boton_numero_uno.get_rect(center=(screen_width // 2, screen_height // 2 + 130))
+boton_numero_tres = pygame.image.load("botones/numero_tres-removebg-preview.png")
+boton_numero_tres = pygame.transform.scale(boton_numero_tres,(145, 145))
+boton_numero_rect_tres = boton_numero_uno.get_rect(center=(screen_width // 2, screen_height // 2 + 130))
 coin_image = pygame.image.load("img/coin.png")
 coin_image = pygame.transform.scale(coin_image,(40,40))
 vida_img = pygame.image.load('img/life.png')
 vida_img = pygame.transform.scale(vida_img, (40, 35))
 game_over_image = pygame.image.load("img/game_over.jpg").convert()
 game_over_image = pygame.transform.scale(game_over_image, (screen_height,screen_width))
+
 # Fuente
 font = pygame.font.Font(None, 30)
 VIDAS = 5
@@ -91,27 +103,23 @@ def blit_level_background(nivel):
     # Agrega más casos según los niveles adicionales que tengas
 def intro(vid):
     pygame.mixer.music.pause()  # Pausar la música
-    
+
     vid = Video(vid)
-    vid.set_size((700,700))
+    vid.set_size((700, 700))
     while True:
         if not vid.draw(screen, (0, 0)):
             break
         pygame.display.update()
-        
+        pygame.time.wait(10)  # Pequeña pausa para procesar los eventos
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 vid.close()
                 pygame.mixer.music.unpause()  # Reanudar la música
                 return
-    
     vid.close()
     pygame.mixer.music.unpause()  # Reanudar la música
 
         # Mostrar la pantalla con la imagen y la frase
-
-
-
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, x, y, limit_right, limit_left):
         pygame.sprite.Sprite.__init__(self)
@@ -255,6 +263,7 @@ class Enemy(pygame.sprite.Sprite):
         self.health -= amount
         print(self.health)
         if self.health <= 0:
+            death_sound_zombie.play()
             self.kill()  # Eliminar el enemigo cuando su vida llega a 0 o menos
         else:
             self.push_frames = self.push_duration  # Activar el empuje
@@ -269,8 +278,8 @@ class Player(pygame.sprite.Sprite):
         self.images_punch_left = [] #golpe a la izquierda
         self.index = 0  # Índice para controlar qué imagen se muestra en la animación
         self.counter = 0  # Contador para controlar la velocidad de la animación
-        self.VIDAS = VIDAS
         self.dead = False
+        self.VIDAS = VIDAS
         # Carga las imágenes de la animación caminando hacia la derecha y las imágenes espejo para la animación hacia la izquierda
         for num in range(0, 13):
             img_stay = pygame.image.load(f'img/parado/{num}.png')
@@ -328,12 +337,9 @@ class Player(pygame.sprite.Sprite):
         if key[pygame.K_SPACE] and not self.jumped:
             self.vel_y = -15
             self.jumped = True
-            self.check_collision()  # Verifica la colisión con los enemigos
-            self.apply_damage()
             
         if key[pygame.K_RETURN] and not self.punch:
             self.punch = True
-            self.check_collision()  # Verifica la colisión con los enemigos
 
         if key[pygame.K_LEFT]:
             dx -= 4
@@ -377,17 +383,12 @@ class Player(pygame.sprite.Sprite):
                         self.index = 0
                         self.punch = False
                         enemy_collision = pygame.sprite.spritecollide(self, world.enemies, False)
+                        
                         for enemy in enemy_collision:
                             enemy.reduce_health(20)
                             punch_sound.play()
                             punch_sound.set_volume(0.30)
                         
-                        boss_collision = pygame.sprite.spritecollide(self, boss_group, False)
-                        for boss_sprite in boss_collision:
-                            boss_sprite.reduce_health(20)
-                            punch_sound.play()
-                            punch_sound.set_volume(0.30)
-
                     if self.direction == -1:
                         self.image = pygame.transform.flip(self.images_punch[self.index], True, False)
                     elif self.direction == 1:
@@ -476,28 +477,27 @@ class Player(pygame.sprite.Sprite):
             if self.rect.y > 10:
                     self.rect.y -= 3
                     self.rect.x += 5
+                    
             else:
                 self.dead = True
                 death_sound.play()
-                death_sound.set_volume(0.40)
                 self.kill()
-
         #pygame.draw.rect(screen, "red", self.rect, 2)
-        
-    def check_collision(self):
-        self.collided_enemies = pygame.sprite.spritecollide(self, world.enemies, False)
-        self.collided_bosses = pygame.sprite.spritecollide(self, boss_group, False)
+    # Restablece las propiedades del jugador después de revivir
+    def reset_properties(self):
+        self.dead = False
+        self.image = self.images_stay[0]
+        self.rect.y = 500  # Establece la posición inicial en el eje y
+        self.vel_y = 0  # Restablece la velocidad vertical inicial del jugador
+        self.direction = 0  # Restablece la dirección del jugador
+        self.jumped = False  # Restablece el estado de salto
+        self.punch = False  # Restablece el estado de golpe
 
-    def apply_damage(self):
-        for enemy in self.collided_enemies:
-            enemy.reduce_health(20)
-            if enemy.health <= 0:
-                enemy.kill()  # Elimina el enemigo si su vida llega a cero
-
-        for boss_sprite in self.collided_bosses:
-            boss_sprite.reduce_health(20)
-            if boss_sprite.health <= 0:
-                boss_sprite.kill()  # Elimina el jefe final si su vida llega a cero
+    # Revive al jugador con 5 vidas
+    def revive(self):
+        global VIDAS  # Indica que se usará la variable global VIDAS
+        VIDAS = 5  # Establece VIDAS en 5
+        self.reset_properties()
 class Gate:
     def __init__(self, image_path, x, y, width, height):
         self.image = pygame.image.load(image_path)
@@ -665,26 +665,19 @@ class BossFinal(pygame.sprite.Sprite):
     # Dentro de la clase BossFinal
     def reduce_health(self, amount):
         self.health -= amount
-        
+        print(self.health)
         if self.health <= 0:
             self.kill()  # Eliminar el jefe final cuando su vida llega a 0 o menos
             
         # Actualizar la posición del rectángulo de la boca
         self.mouth_rect.x = self.rect.x + self.mouth_offset_x
         self.mouth_rect.y = self.rect.y + self.mouth_offset_y
-    
-
-#manejador de niveles, si el nivel es uno ta ta ta ta.
+bandera_nivel_1 = False
+timer = Timer(60000)
 
 ##############################NIVEL 1#########################################
 nivel_actual = 1
-nivel1 = Level1()
-mostrar_imagen("img/shrek_y_fiona.jpg","Salva a Fiona, ha sido secuestrada por el principe!")
-intro("audio/video_recuerdos.mp4")
-music = nivel2.music_bg
 world = nivel1.world
-timer = Timer(60000)
-timer.start()
 gate = Gate("img/fotos/exit.png", 655, 40, 40, 60)
 player = Player(30, screen_height - 40 - 70)
 #boss = BossFinal(200, screen_height - 385, player)
@@ -697,20 +690,41 @@ boss_group.add(boss)
 world.enemies.add(enemy, enemy2)  # Agrega el enemigo al grupo de enemigos en world
 all_sprites = pygame.sprite.Group()
 all_sprites.add(player, enemy, enemy2, world.enemies)#, boss agregar
-#####################################################################################
-
-def pasar_al_siguiente_nivel():
+###################### REINICIO NIVEL 1######################################
+def reiniciar_nivel1():
     global nivel_actual, music, world, gate, player, enemy, enemy2, all_sprites
-    nivel_actual += 1
 
+    nivel_actual = 1
+    nivel1 = Level1()
+    mostrar_imagen("img/shrek_y_fiona.jpg","Salva a Fiona, ha sido secuestrada por el principe!")
+    intro("audio/video_recuerdos.mp4")
+    music = nivel2.music_bg
+    timer.start()
+    world = nivel1.world
+    gate = Gate("img/fotos/exit.png", 655, 40, 40, 60)
+    player = Player(30, screen_height - 40 - 70)
+    player.revive()
+    player.dead = False
+    enemy = Enemy(200, screen_height - 385, 250, 100)
+    enemy2 = Enemy(100, screen_height - 500, 250, 100)
+    enemy.player = player
+    boss = BossFinal(-500, 80, player)
+    boss_group = pygame.sprite.Group()
+    boss_group.add(boss)
+    world.enemies.add(enemy, enemy2)
+    all_sprites = pygame.sprite.Group()
+    all_sprites.add(player, enemy, enemy2, world.enemies)
+#############################################################################
+def pasar_al_siguiente_nivel():
+    global nivel_actual, music, world, gate, player, enemy, enemy2, all_sprites, main_menu
+    nivel_actual += 1
     if nivel_actual == 2:
         # Configuración para el nivel 2
         nivel2 = Level2()
-        mostrar_imagen("img/shrek_y_fiona.jpg","Te queda poco para salvarla, no te rindas")
+        mostrar_imagen("img/fiona_humana.jpg","Te queda poco para salvarla, no te rindas")
         intro("audio/nivel_2_video.mp4")
         music = nivel2.music_bg
         world = nivel2.world
-        timer = Timer(60000)  # Temporizador de 60 segundos
         timer.start()
         gate = Gate("img/fotos/exit.png", 655, 40, 40, 60)
         player = Player(600, screen_height - 80)
@@ -733,90 +747,124 @@ def pasar_al_siguiente_nivel():
         world = nivel3.world
         mostrar_imagen("img/ogro.jpg", "")
         pygame.mixer.music.load("audio/MUSICA PARA SUSPENSO-ACCION - MUSIC FOR SUSPENSE-ACTION (1).mp3")
-        pygame.mixer.music.set_volume(0.10)
         pygame.mixer.music.play(-1)  # Reproducir en bucle
-        timer = Timer(60000)  # Temporizador de 60 segundos
         timer.start()
         gate = Gate("img/fotos/exit.png", 0, 90, 40, 60)
-        player = Player(600, 600)
+        player = Player(630, 500)
         boss = BossFinal(550, 80, player)
         boss.direction = -1
         player.direction = -1
-        boss_group = pygame.sprite.Group()
-        boss_group.add(boss)
+        boss_group = pygame.sprite.Group(boss)  # Crear el grupo para el jefe final
+        boss_group.add(boss)  # Agregar el jefe final al grupo
         enemy = Enemy(490, screen_height - 300, 550, 290)
         enemy4 = Enemy(290, screen_height - 400, 550, 290)
         enemy.player = player
         world.enemies.add(enemy, enemy4)
         all_sprites = pygame.sprite.Group()
-        all_sprites.add(player, world.enemies, enemy, enemy4, boss_group)
+        all_sprites.add(player, world.enemies, enemy, enemy4,boss)
     elif nivel_actual == 4:
         intro("audio/video_final.mp4")
         mostrar_imagen("img/6877113.jpg","¡Lo haz hecho, Shrek y Fiona te lo agradeceran siempre!")
+        main_menu = True
+        pygame.mixer.music.load('audio/Shrek - All Star (By Smash Mouth) (Canción Completa)  Subtitulado Español  Lyrics.mp3')
+        pygame.mixer.music.play(-1)
+        
+        
 
 
+
+start_button = Button(130,300, boton_numero_uno)
+level_button_2 = Button(430,300, boton_numero_dos)
+level_button_3 = Button(280,500, boton_numero_tres)
 
 run = True
-
+pygame.mixer.music.load('audio/Shrek - All Star (By Smash Mouth) (Canción Completa)  Subtitulado Español  Lyrics.mp3')
+pygame.mixer.music.play(-1)
 while run:
-
     clock.tick(fps)
-    
+
     # Manejo de eventos
     for event in pygame.event.get():
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:  # Clic izquierdo
+                if reset_button_rect.collidepoint(event.pos):  # Verificar si se hizo clic dentro del botón de reset
+                    reiniciar_nivel1()
+
         if event.type == pygame.QUIT:
             run = False
-    
-    # Verificar las colisiones entre el jugador y las monedas
-    collisions = pygame.sprite.spritecollide(player, world.coins, True)
-    for coin in collisions:
-        world.coin_counter += 1
-        coin_sound.play()
-        coin_sound.set_volume(0.30)
+    if main_menu:
+        image = pygame.image.load("img/Juan Francisco Pirolo ©.png")
+        image = pygame.transform.scale(image, (screen_width, screen_height))
+        screen.blit(image, (0, 0))
+                # Crear imagen de texto
+        if start_button.draw(screen):
+            reiniciar_nivel1()
+            main_menu = False
+        elif level_button_2.draw(screen):
+            nivel_actual = 1
+            pasar_al_siguiente_nivel()
+            main_menu = False
+        elif level_button_3.draw(screen):
+            nivel_actual = 2
+            pasar_al_siguiente_nivel()
+            main_menu = False
 
-    collisions = pygame.sprite.spritecollide(player, world.life, True)
-    for life in collisions:
-        if VIDAS < 5:
-            VIDAS += 1
-        life_sound.play()
-        life_sound.set_volume(0.30)
-    # Actualizar las plataformas
-    world.platforms.update()
-    
-    # Dibujar en la pantalla
-    blit_level_background(nivel_actual)
-    
-    for i in range(VIDAS):
-        screen.blit(vida_img, (pos_vidas[0] + i * (vida_img.get_width() + 5), pos_vidas[1]))
-    world.platforms.draw(screen)
-    world.coins.draw(screen)
-    world.life.draw(screen)
-    gate.check_collision(player)
-    gate.draw(screen)  # Dibujar la compuerta en la ventana
-    # Actualizar y dibujar el contador de monedas
-    screen.blit(coin_image, (590, 10))
-    coin_text = world.coin_font.render("X"+ " " +str(world.coin_counter), True, (255, 255, 255))
-    screen.blit(coin_text, (coin_image.get_width() + 600, 20))
-    
+        pygame.display.flip()
 
-    all_sprites.update()
-    all_sprites.draw(screen)
-    
-    if not timer.update():
-        # El temporizador está en curso
-        minutes = timer.get_elapsed_time() // 60000
-        seconds = (timer.get_elapsed_time() % 60000) // 1000
-        time_string = "{:02d}:{:02d}".format(minutes, seconds)
-        text = font.render(time_string, True, 'White')
-        screen.blit(text, (350, 20))
     else:
-        # El temporizador ha terminado
-        # Realiza las acciones correspondientes
-        player.kill()
-        screen.blit(game_over_image, (0, 0))
-        # Reinicia el temporizador para que comience de nuevo
-        timer.reset()
-    if player.dead:
-        screen.blit(game_over_image, (0, 0))
-    pygame.display.update()
+        # Verificar las colisiones entre el jugador y las monedas
+        collisions = pygame.sprite.spritecollide(player, world.coins, True)
+        for coin in collisions:
+            world.coin_counter += 1
+            coin_sound.play()
+            coin_sound.set_volume(0.30)
+
+        collisions = pygame.sprite.spritecollide(player, world.life, True)
+        for life in collisions:
+            if VIDAS < 5:
+                VIDAS += 1
+            life_sound.play()
+            life_sound.set_volume(0.30)
+
+        # Actualizar las plataformas
+        world.platforms.update()
+
+        # Dibujar en la pantalla
+        blit_level_background(nivel_actual)
+
+        for i in range(VIDAS):
+            screen.blit(vida_img, (pos_vidas[0] + i * (vida_img.get_width() + 5), pos_vidas[1]))
+
+        world.platforms.draw(screen)
+        world.coins.draw(screen)
+        world.life.draw(screen)
+        gate.check_collision(player)
+        gate.draw(screen)  # Dibujar la compuerta en la ventana
+
+        # Actualizar y dibujar el contador de monedas
+        screen.blit(coin_image, (590, 10))
+        coin_text = world.coin_font.render("X" + " " + str(world.coin_counter), True, (255, 255, 255))
+        screen.blit(coin_text, (coin_image.get_width() + 600, 20))
+        all_sprites.update()
+        all_sprites.draw(screen)
+
+        # Dibujar el botón en la pantalla
+        if not timer.update():
+            # El temporizador está en curso
+            minutes = timer.get_elapsed_time() // 60000
+            seconds = (timer.get_elapsed_time() % 60000) // 1000
+            time_string = "{:02d}:{:02d}".format(minutes, seconds)
+            text = font.render(time_string, True, 'White')
+            screen.blit(text, (350, 20))
+        else:
+            # El temporizador terminó
+            player.dead = True
+
+        if player.dead:
+            screen.blit(game_over_image, (0, 0))
+            screen.blit(reset_button_image, reset_button_rect)
+
+        pygame.display.update()
+
 pygame.quit()
+

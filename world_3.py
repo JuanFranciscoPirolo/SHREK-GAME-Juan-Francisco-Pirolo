@@ -7,7 +7,6 @@ pygame.font.init()
 screen_width = 700
 screen_height = 700
 screen = pygame.display.set_mode((screen_width, screen_height))
-
 class World:
     def __init__(self):
         self.platforms = pygame.sprite.Group()
