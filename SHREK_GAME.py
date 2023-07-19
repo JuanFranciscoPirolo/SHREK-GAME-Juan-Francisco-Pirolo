@@ -1,6 +1,7 @@
 import pygame
 import pygame.mixer
 import sys
+import csv
 from pygame.locals import *
 from level1 import Level1
 from level2 import Level2
@@ -9,55 +10,87 @@ from pyvidplayer import Video
 from temporizador import Timer
 from boton import Button
 
-#solucionar error dragon
-#agregar sonido nivel 3 listo
-#agregar projectiles shrek
-#que los enemigos se generen aleatoriamente.
-#agregar cronometro, bajar puntos si tarda mas. listo
-#trampa
-#niveles listo
-#agregar sonido cuando se muere el enemigo listo
-# settings, efectos de sonido, on y off musica ambiental on y off, guardar partida, no necesaria.
-#para interfaz de usuario pantalla principal, pantalla de pausa, settings, puntuaciones, pantalla win lose
-#manejo de archivos: info niveles en archivo.  guardar settings.
 
 pygame.init()
 #Configuracion de musica
-death_sound_zombie = pygame.mixer.Sound("audio/Minecraft Zombie Snarl   Efecto de sonido HD.mp3")
-fire_sound = pygame.mixer.Sound("audio/Efecto de Sonido - Fuego (Incendio).mp3")
-death_sound = pygame.mixer.Sound("audio/Sonido de muerte de Fortnite-Death Fortnite sound.mp3")
-life_sound = pygame.mixer.Sound("audio/Sonido de experiencia en minecraft.mp3")
-coin_sound = pygame.mixer.Sound("audio/coin.wav")
-punch_sound = pygame.mixer.Sound("audio/Efecto de sonido- Golpe.mp3")
+try:
+    death_sound_zombie = pygame.mixer.Sound("audio/Minecraft Zombie Snarl   Efecto de sonido HD.mp3")
+    fire_sound = pygame.mixer.Sound("audio/Efecto de Sonido - Fuego (Incendio).mp3")
+    death_sound = pygame.mixer.Sound("audio/Sonido de muerte de Fortnite-Death Fortnite sound.mp3")
+    life_sound = pygame.mixer.Sound("audio/Sonido de experiencia en minecraft.mp3")
+    coin_sound = pygame.mixer.Sound("audio/coin.wav")
+    punch_sound = pygame.mixer.Sound("audio/Efecto de sonido- Golpe.mp3")
+    icono = pygame.image.load("img/shrek_icon.png")
+    pygame.display.set_icon(icono)
+    
+except Exception as e:
+    print("Se produjo un error al cargar los sonidos o configurar el icono:", str(e) + "\n"+
+        ". Se ha guardado el error en el archivo 'error_log.csv'.")
+
+    with open('error_log.csv', 'a', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['Error'])
+        writer.writerow([str(e)])
+        
 main_menu = True
 #FPS
 clock = pygame.time.Clock()
 fps = 60
 
 # Configuración de pantalla
+
 screen_width = 700
 screen_height = 700
 screen = pygame.display.set_mode((screen_width, screen_height))
-#Muestro el video del inicio
 
 
-#pygame.mixer.music.load('audio/X2Download.app - Dirty Deeds Done Dirt Cheap (128 kbps).mp3')  # Cargo la musica de fondo.
-#pygame.mixer.music.set_volume(0.10)
-#pygame.mixer.music.play(-1)  # Suena
+
 
 # Imágenes cargadas
-reset_button_image = pygame.image.load("img/restart.png")
-reset_button_image = pygame.transform.scale(reset_button_image, (100, 100))
-reset_button_rect = reset_button_image.get_rect(center=(screen_width // 2, screen_height // 2 + 130))
-boton_numero_uno = pygame.image.load("botones/numero_uno-removebg-preview.png")
-boton_numero_uno = pygame.transform.scale(boton_numero_uno,(145, 145))
-boton_numero_rect_uno = boton_numero_uno.get_rect(center=(screen_width // 2, screen_height // 2 + 130))
-boton_numero_dos = pygame.image.load("botones/numero_dos-transformed-removebg-preview.png")
-boton_numero_dos = pygame.transform.scale(boton_numero_dos,(145, 145))
-boton_numero_rect_dos = boton_numero_uno.get_rect(center=(screen_width // 2, screen_height // 2 + 130))
-boton_numero_tres = pygame.image.load("botones/numero_tres-removebg-preview.png")
-boton_numero_tres = pygame.transform.scale(boton_numero_tres,(145, 145))
-boton_numero_rect_tres = boton_numero_uno.get_rect(center=(screen_width // 2, screen_height // 2 + 130))
+try:
+    exit = pygame.image.load("botones/exit_2.png")
+    exit = pygame.transform.scale(exit, (165, 75))
+    exit_rect = exit.get_rect(center=(screen_width // 2, screen_height // 2 + 150))
+
+    button_home = pygame.image.load("botones/green_home.png")
+    button_home = pygame.transform.scale(button_home, (65, 65))
+    button_home_rect = button_home.get_rect(center=(screen_width // 2, screen_height // 2 + 150))
+
+    button_music_on = pygame.image.load("botones/green_sound.png")
+    button_music_on = pygame.transform.scale(button_music_on, (65, 65))
+    button_music_rect_on = button_music_on.get_rect(center=(screen_width // 2, screen_height // 2 + 150))
+
+    button_music_off = pygame.image.load("botones/not_sound_green.png")
+    button_music_off = pygame.transform.scale(button_music_off, (65, 65))
+    button_music_rect_off = button_music_off.get_rect(center=(screen_width // 2, screen_height // 2 + 150))
+
+    reset_button_image = pygame.image.load("img/restart.png")
+    reset_button_image = pygame.transform.scale(reset_button_image, (100, 100))
+    reset_button_rect = reset_button_image.get_rect(center=(screen_width // 2, screen_height // 2 + 130))
+
+    home_button_image = pygame.image.load("img/casa_verde_restart.png")
+    home_button_image = pygame.transform.scale(home_button_image, (100, 100))
+    home_button_rect = home_button_image.get_rect(center=(screen_width // 2, screen_height // 2 + 130))
+
+    boton_numero_uno = pygame.image.load("botones/numero_uno-removebg-preview.png")
+    boton_numero_uno = pygame.transform.scale(boton_numero_uno,(145, 145))
+    boton_numero_rect_uno = boton_numero_uno.get_rect(center=(screen_width // 2, screen_height // 2 + 130))
+
+    boton_numero_dos = pygame.image.load("botones/numero_dos-transformed-removebg-preview.png")
+    boton_numero_dos = pygame.transform.scale(boton_numero_dos,(145, 145))
+    boton_numero_rect_dos = boton_numero_dos.get_rect(center=(screen_width // 2, screen_height // 2 + 130))
+    boton_numero_tres = pygame.image.load("botones/numero_tres-removebg-preview.png")
+    boton_numero_tres = pygame.transform.scale(boton_numero_tres,(145, 145))
+    boton_numero_rect_tres = boton_numero_tres.get_rect(center=(screen_width // 2, screen_height // 2 + 130))
+except Exception as e:
+    print("Se produjo un error al cargar las imágenes:", str(e) + "\n"+
+        ". Se ha guardado el error en el archivo 'error_log.csv'.")
+
+    with open('error_log.csv', 'a', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['Error'])
+        writer.writerow([str(e)])
+
 coin_image = pygame.image.load("img/coin.png")
 coin_image = pygame.transform.scale(coin_image,(40,40))
 vida_img = pygame.image.load('img/life.png')
@@ -101,6 +134,7 @@ def blit_level_background(nivel):
     elif nivel == 3:
         screen.blit(nivel3.background, (-100, -60))
     # Agrega más casos según los niveles adicionales que tengas
+
 def intro(vid):
     pygame.mixer.music.pause()  # Pausar la música
 
@@ -110,7 +144,6 @@ def intro(vid):
         if not vid.draw(screen, (0, 0)):
             break
         pygame.display.update()
-        pygame.time.wait(10)  # Pequeña pausa para procesar los eventos
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 vid.close()
@@ -118,8 +151,6 @@ def intro(vid):
                 return
     vid.close()
     pygame.mixer.music.unpause()  # Reanudar la música
-
-        # Mostrar la pantalla con la imagen y la frase
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, x, y, limit_right, limit_left):
         pygame.sprite.Sprite.__init__(self)
@@ -383,10 +414,15 @@ class Player(pygame.sprite.Sprite):
                         self.index = 0
                         self.punch = False
                         enemy_collision = pygame.sprite.spritecollide(self, world.enemies, False)
-                        
+                        boss_collision = pygame.sprite.spritecollide(self, boss_group, False )
                         for enemy in enemy_collision:
                             enemy.reduce_health(20)
                             punch_sound.play()
+                            punch_sound.set_volume(0.30)
+                            
+                        for boss in boss_collision:
+                            boss.reduce_health(20)
+                            boss.play()
                             punch_sound.set_volume(0.30)
                         
                     if self.direction == -1:
@@ -507,16 +543,19 @@ class Gate:
         self.rect.y = y
         self.nivel = 0
         self.level_added = False  # Variable para controlar si el nivel ya ha sido sumado
+        self.touch_count = 0  # Contador de veces que el jugador toca la puerta
+
     def draw(self, surface):
         surface.blit(self.image, self.rect)
         
-    #Si el jugador pasa el final, y toca la compuerta.
+    # Si el jugador pasa el final y toca la compuerta.
     def check_collision(self, player):
         if self.rect.colliderect(player.rect) and not self.level_added:
             pygame.mixer.music.stop()
             all_sprites.remove(player)
             self.nivel += 1
             self.level_added = True
+            self.touch_count += 1
             pasar_al_siguiente_nivel()
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y, direction):
@@ -556,7 +595,7 @@ class BossFinal(pygame.sprite.Sprite):
         self.projectiles = pygame.sprite.Group()  # Grupo para almacenar los proyectiles
         self.max_health = 100  # Valor máximo de la vida del enemigo
         self.health = self.max_health  # Valor inicial de la vida del enemigo
-        
+        self.dead = False
         for num in range(0, 11):
             img_right = pygame.image.load(f'img/parado_drake/{num}.png')
             img_right = pygame.transform.scale(img_right, (150, 120))
@@ -668,6 +707,7 @@ class BossFinal(pygame.sprite.Sprite):
         print(self.health)
         if self.health <= 0:
             self.kill()  # Eliminar el jefe final cuando su vida llega a 0 o menos
+            self.dead = True
             
         # Actualizar la posición del rectángulo de la boca
         self.mouth_rect.x = self.rect.x + self.mouth_offset_x
@@ -689,7 +729,7 @@ boss_group = pygame.sprite.Group()
 boss_group.add(boss)
 world.enemies.add(enemy, enemy2)  # Agrega el enemigo al grupo de enemigos en world
 all_sprites = pygame.sprite.Group()
-all_sprites.add(player, enemy, enemy2, world.enemies)#, boss agregar
+all_sprites.add(player, enemy, enemy2, world.enemies)
 ###################### REINICIO NIVEL 1######################################
 def reiniciar_nivel1():
     global nivel_actual, music, world, gate, player, enemy, enemy2, all_sprites
@@ -715,6 +755,58 @@ def reiniciar_nivel1():
     all_sprites = pygame.sprite.Group()
     all_sprites.add(player, enemy, enemy2, world.enemies)
 #############################################################################
+def reiniciar_nivel2():
+        global nivel_actual, music, world, gate, player, enemy, enemy2, all_sprites
+        nivel_actual = 2
+            # Configuración para el nivel 2
+        nivel2 = Level2()
+        mostrar_imagen("img/fiona_humana.jpg","Te queda poco para salvarla, no te rindas")
+        intro("audio/nivel_2_video.mp4")
+        music = nivel2.music_bg
+        world = nivel2.world
+        timer.reset()
+        timer.start()
+        gate = Gate("img/fotos/exit.png", 655, 40, 40, 60)
+        player = Player(600, screen_height - 80)
+        player.revive()
+        player.direction = -1
+        enemy = Enemy(200, screen_height - 385, 250, 100)
+        enemy2 = Enemy(100, screen_height - 500, 250, 100)
+        enemy3 = Enemy(400, screen_height - 300, 550, 400)
+        enemy4 = Enemy(400, screen_height - 500, 550, 400)
+        enemy.player = player
+        boss = BossFinal(-500, 80, player)
+        boss_group = pygame.sprite.Group()
+        boss_group.add(boss)
+        world.enemies.add(enemy, enemy2, enemy3, enemy4)
+        all_sprites = pygame.sprite.Group()
+        all_sprites.add(player, enemy, enemy2, enemy3, enemy4, world.enemies)
+def reiniciar_nivel3():
+        global nivel_actual, music, world, gate, player, enemy, enemy2, all_sprites
+        
+        nivel_actual = 3
+        # Configuración para el nivel 3
+        nivel3 = Level3()
+        world = nivel3.world
+        mostrar_imagen("img/ogro.jpg", "")
+        pygame.mixer.music.load("audio/MUSICA PARA SUSPENSO-ACCION - MUSIC FOR SUSPENSE-ACTION (1).mp3")
+        pygame.mixer.music.play(-1)  # Reproducir en bucle
+        timer.reset()
+        timer.start()
+        gate = Gate("img/fotos/exit.png", 0, 90, 40, 60)
+        player = Player(630, 500)
+        player.revive()
+        boss = BossFinal(550, 80, player)
+        boss.direction = -1
+        player.direction = -1
+        boss_group = pygame.sprite.Group(boss)  # Crear el grupo para el jefe final
+        boss_group.add(boss)  # Agregar el jefe final al grupo
+        enemy = Enemy(490, screen_height - 300, 550, 290)
+        enemy4 = Enemy(290, screen_height - 400, 550, 290)
+        enemy.player = player
+        world.enemies.add(enemy, enemy4,boss)
+        all_sprites = pygame.sprite.Group()
+        all_sprites.add(player, world.enemies, enemy, enemy4,boss)
 def pasar_al_siguiente_nivel():
     global nivel_actual, music, world, gate, player, enemy, enemy2, all_sprites, main_menu
     nivel_actual += 1
@@ -725,9 +817,11 @@ def pasar_al_siguiente_nivel():
         intro("audio/nivel_2_video.mp4")
         music = nivel2.music_bg
         world = nivel2.world
+        timer.reset()
         timer.start()
         gate = Gate("img/fotos/exit.png", 655, 40, 40, 60)
         player = Player(600, screen_height - 80)
+        player.revive()
         player.direction = -1
         enemy = Enemy(200, screen_height - 385, 250, 100)
         enemy2 = Enemy(100, screen_height - 500, 250, 100)
@@ -748,9 +842,11 @@ def pasar_al_siguiente_nivel():
         mostrar_imagen("img/ogro.jpg", "")
         pygame.mixer.music.load("audio/MUSICA PARA SUSPENSO-ACCION - MUSIC FOR SUSPENSE-ACTION (1).mp3")
         pygame.mixer.music.play(-1)  # Reproducir en bucle
+        timer.reset()
         timer.start()
         gate = Gate("img/fotos/exit.png", 0, 90, 40, 60)
         player = Player(630, 500)
+        player.revive()
         boss = BossFinal(550, 80, player)
         boss.direction = -1
         player.direction = -1
@@ -759,7 +855,7 @@ def pasar_al_siguiente_nivel():
         enemy = Enemy(490, screen_height - 300, 550, 290)
         enemy4 = Enemy(290, screen_height - 400, 550, 290)
         enemy.player = player
-        world.enemies.add(enemy, enemy4)
+        world.enemies.add(enemy, enemy4,boss)
         all_sprites = pygame.sprite.Group()
         all_sprites.add(player, world.enemies, enemy, enemy4,boss)
     elif nivel_actual == 4:
@@ -768,103 +864,203 @@ def pasar_al_siguiente_nivel():
         main_menu = True
         pygame.mixer.music.load('audio/Shrek - All Star (By Smash Mouth) (Canción Completa)  Subtitulado Español  Lyrics.mp3')
         pygame.mixer.music.play(-1)
-        
-        
-
 
 
 start_button = Button(130,300, boton_numero_uno)
 level_button_2 = Button(430,300, boton_numero_dos)
-level_button_3 = Button(280,500, boton_numero_tres)
-
+level_button_3 = Button(275,500, boton_numero_tres)
+music_on = Button(250,350,button_music_on )
+music_off = Button(385,350,button_music_off)
+home_button = Button(315,230,button_home)
+home_reset_button = Button(300,165,home_button_image)
+exit_button = Button(530,630,exit)
 run = True
 pygame.mixer.music.load('audio/Shrek - All Star (By Smash Mouth) (Canción Completa)  Subtitulado Español  Lyrics.mp3')
 pygame.mixer.music.play(-1)
-while run:
-    clock.tick(fps)
+mostrar_imagen_encima = False 
+sound_flag_on = False
+sound_flag_off = False
+bandera_uno = False
+score = 0
+monedas_multiplicadas = 0
+bandera_cuarenta_segundos = False
+bandera_treinta_segundos = False
+bandera_veinte_segundos = False
+score_tiempo = 0
+multiplicador_puntos = 1
+multiplicador = 500  # Número por el cual se multiplicarán las monedas
+contador_monedas = 0
 
-    # Manejo de eventos
-    for event in pygame.event.get():
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:  # Clic izquierdo
-                if reset_button_rect.collidepoint(event.pos):  # Verificar si se hizo clic dentro del botón de reset
-                    reiniciar_nivel1()
+try:
+    while run:
 
-        if event.type == pygame.QUIT:
-            run = False
-    if main_menu:
-        image = pygame.image.load("img/Juan Francisco Pirolo ©.png")
-        image = pygame.transform.scale(image, (screen_width, screen_height))
-        screen.blit(image, (0, 0))
-                # Crear imagen de texto
-        if start_button.draw(screen):
-            reiniciar_nivel1()
-            main_menu = False
-        elif level_button_2.draw(screen):
-            nivel_actual = 1
-            pasar_al_siguiente_nivel()
-            main_menu = False
-        elif level_button_3.draw(screen):
-            nivel_actual = 2
-            pasar_al_siguiente_nivel()
-            main_menu = False
+        clock.tick(fps)
+        # Verificar el tiempo transcurrido y actualizar el multiplicador de puntos
+        if pygame.sprite.collide_rect(player, gate):
+            if timer.get_elapsed_time() >= 40000:
+                multiplicador_puntos = 2
+            elif timer.get_elapsed_time() >= 30000:
+                multiplicador_puntos = 1.5
+            elif timer.get_elapsed_time() >= 20000:
+                multiplicador_puntos = 1.25
 
-        pygame.display.flip()
+        # Manejo de eventos
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:  # Clic izquierdo
+                    if reset_button_rect.collidepoint(event.pos):  # Verificar si se hizo clic dentro del botón de reset
+                        if nivel_actual == 1:
+                            reiniciar_nivel1()
+                        elif nivel_actual == 2:
+                            reiniciar_nivel2()
+                        elif nivel_actual == 3:
+                            reiniciar_nivel3()
+            if event.type == pygame.QUIT:
+                run = False
 
-    else:
-        # Verificar las colisiones entre el jugador y las monedas
-        collisions = pygame.sprite.spritecollide(player, world.coins, True)
-        for coin in collisions:
-            world.coin_counter += 1
-            coin_sound.play()
-            coin_sound.set_volume(0.30)
+            if event.type == pygame.KEYDOWN:
+                if nivel_actual > 0 and nivel_actual < 4:
+                    if event.key == pygame.K_ESCAPE:
+                        if mostrar_imagen_encima:
+                            mostrar_imagen_encima = False
+                            timer.resume()
+                            pygame.display.flip()
+                        else:
+                            imagen_encima = pygame.image.load("img/fotos/HD-wallpaper-black-wood-graphics-texture-wood.jpg")
+                            imagen_encima = pygame.transform.scale(imagen_encima, (screen_width, screen_height))
+                            mostrar_imagen_encima = True
+                            timer.stop()
+                            pygame.display.flip()
 
-        collisions = pygame.sprite.spritecollide(player, world.life, True)
-        for life in collisions:
-            if VIDAS < 5:
-                VIDAS += 1
-            life_sound.play()
-            life_sound.set_volume(0.30)
+        if main_menu:
+            mostrar_imagen_encima = False
+            image = pygame.image.load("img/Juan Francisco Pirolo ©.png")
+            image = pygame.transform.scale(image, (screen_width, screen_height))
+            screen.blit(image, (0, 0))
+            monedas_multiplicadas = contador_monedas
+            score = monedas_multiplicadas * multiplicador * multiplicador_puntos
+            score_text = font.render("Tu Score conseguido: " + str(score), True, (255, 255, 255))
+            if nivel_actual == 4 or player.dead:
+                screen.blit(score_text, (200, 680))  # Reemplaza 'x' e 'y' con las coordenadas donde deseas mostrar el puntaje en pantalla
+            if start_button.draw(screen):
+                bandera_uno = True
+                score = 0
+                nivel_actual = 1
+                reiniciar_nivel1()
+                main_menu = False
+            if nivel_actual == 2:
+                if level_button_2.draw(screen):
+                    nivel_actual = 1
+                    pasar_al_siguiente_nivel()
+                    main_menu = False
+            
+            if nivel_actual == 3 or nivel_actual == 4:
+                if level_button_3.draw(screen):
+                    nivel_actual = 2
+                    pasar_al_siguiente_nivel()
+                    main_menu = False
+                if level_button_2.draw(screen):
+                    nivel_actual = 1
+                    pasar_al_siguiente_nivel()
+                    main_menu = False
+            if exit_button.draw(screen):
+                sys.exit()
+            pygame.display.flip()
 
-        # Actualizar las plataformas
-        world.platforms.update()
-
-        # Dibujar en la pantalla
-        blit_level_background(nivel_actual)
-
-        for i in range(VIDAS):
-            screen.blit(vida_img, (pos_vidas[0] + i * (vida_img.get_width() + 5), pos_vidas[1]))
-
-        world.platforms.draw(screen)
-        world.coins.draw(screen)
-        world.life.draw(screen)
-        gate.check_collision(player)
-        gate.draw(screen)  # Dibujar la compuerta en la ventana
-
-        # Actualizar y dibujar el contador de monedas
-        screen.blit(coin_image, (590, 10))
-        coin_text = world.coin_font.render("X" + " " + str(world.coin_counter), True, (255, 255, 255))
-        screen.blit(coin_text, (coin_image.get_width() + 600, 20))
-        all_sprites.update()
-        all_sprites.draw(screen)
-
-        # Dibujar el botón en la pantalla
-        if not timer.update():
-            # El temporizador está en curso
-            minutes = timer.get_elapsed_time() // 60000
-            seconds = (timer.get_elapsed_time() % 60000) // 1000
-            time_string = "{:02d}:{:02d}".format(minutes, seconds)
-            text = font.render(time_string, True, 'White')
-            screen.blit(text, (350, 20))
         else:
-            # El temporizador terminó
-            player.dead = True
+            if mostrar_imagen_encima:
+                screen.blit(imagen_encima, (0, 0))
+                if music_on.draw(screen):
+                    sound_flag_on = True
+                    pygame.mixer_music.play()
+                if music_off.draw(screen):
+                    sound_flag_on = True
+                    pygame.mixer_music.stop()
+                if home_button.draw(screen):
+                    main_menu = True
+                    pygame.mixer_music.stop()
+                    pygame.mixer.music.load('audio/Shrek - All Star (By Smash Mouth) (Canción Completa)  Subtitulado Español  Lyrics.mp3')
+                    pygame.mixer.music.play(-1)
+            else:
+                
+                if sound_flag_on == True:
+                    pygame.mixer_music.unpause()
+                elif sound_flag_off == True:
+                    pygame.mixer_music.pause()
+                # Verificar las colisiones entre el jugador y las monedas
+                collisions = pygame.sprite.spritecollide(player, world.coins, True)
+                for coin in collisions:
+                    world.coin_counter += 1
+                    contador_monedas += 1
+                    coin_sound.play()
+                    coin_sound.set_volume(0.30)
 
-        if player.dead:
-            screen.blit(game_over_image, (0, 0))
-            screen.blit(reset_button_image, reset_button_rect)
+                collisions = pygame.sprite.spritecollide(player, world.life, True)
+                for life in collisions:
+                    if VIDAS < 5:
+                        VIDAS += 1
+                    life_sound.play()
+                    life_sound.set_volume(0.30)
+
+                # Actualizar las plataformas
+                world.platforms.update()
+
+                # Dibujar en la pantalla
+                blit_level_background(nivel_actual)
+
+                for i in range(VIDAS):
+                    screen.blit(vida_img, (pos_vidas[0] + i * (vida_img.get_width() + 5), pos_vidas[1]))
+
+                world.platforms.draw(screen)
+                world.coins.draw(screen)
+                world.life.draw(screen)
+                gate.check_collision(player)
+                gate.draw(screen)  # Dibujar la compuerta en la ventana
+                if mostrar_imagen_encima:
+                    mostrar_imagen = pygame.image.load("img/fotos/HD-wallpaper-black-wood-graphics-texture-wood.jpg")
+                    screen.blit(imagen_encima, (0, 0))
+
+                # Actualizar y dibujar el contador de monedas
+                screen.blit(coin_image, (590, 10))
+                coin_text = world.coin_font.render("X" + " " + str(world.coin_counter), True, (255, 255, 255))
+                screen.blit(coin_text, (coin_image.get_width() + 600, 20))
+                all_sprites.update()
+                all_sprites.draw(screen)
+
+                # Dibujar el botón en la pantalla
+                if not timer.update():
+                    # El temporizador está en curso
+                    minutes = timer.get_elapsed_time() // 60000
+                    seconds = (timer.get_elapsed_time() % 60000) // 1000
+                    time_string = "{:02d}:{:02d}".format(minutes, seconds)
+                    text = font.render(time_string, True, 'White')
+                    screen.blit(text, (350, 20))
+                    
+                else:
+                    # El temporizador terminó
+                    player.dead = True
+                    
+                    
+                if player.dead:
+                    screen.blit(game_over_image, (0, 0))
+                    screen.blit(reset_button_image, reset_button_rect)
+
+                    
+                    if home_reset_button.draw(screen):
+                        main_menu = True
+                        screen.blit(image, (0, 0))
+                        pygame.mixer_music.stop()
+                        pygame.mixer.music.load('audio/Shrek - All Star (By Smash Mouth) (Canción Completa)  Subtitulado Español  Lyrics.mp3')
+                        pygame.mixer.music.play(-1)
 
         pygame.display.update()
 
-pygame.quit()
+except Exception as e:
+    error_message = "Se produjo un error: " + str(e)
+    print(error_message)
+    with open('error_log.csv', 'a', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['Error', str(e)])
 
+        
+pygame.quit()

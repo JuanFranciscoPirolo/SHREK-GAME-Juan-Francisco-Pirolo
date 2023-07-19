@@ -1,0 +1,9 @@
+Error,name 'score_text' is not defined,Error,name 'runn' is not defined
+Error,name 'score_text' is not defined
+Error,text must be a unicode or bytes
+Error,mostrar_imagen() missing 1 required positional argument: 'texto'
+Error,name 'score_text' is not defined
+Error,name 'top_scores' is not defined
+Error,database is locked
+Error,database is locked
+Error,'str' object has no attribute 'set_size'

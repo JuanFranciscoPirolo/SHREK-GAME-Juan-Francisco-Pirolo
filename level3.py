@@ -2,8 +2,6 @@ import pygame
 from pygame.locals import *
 from world_3 import World
 from pyvidplayer import Video
-from jugador import Player
-from jugador import Enemy
 
 pygame.font.init()
 screen_width = 700

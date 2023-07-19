@@ -8,8 +8,9 @@ class Timer:
         self.is_running = False
     
     def start(self):
-        self.start_time = pygame.time.get_ticks()
-        self.is_running = True
+        if not self.is_running:
+            self.start_time = pygame.time.get_ticks()
+            self.is_running = True
     
     def stop(self):
         self.is_running = False
@@ -34,3 +35,8 @@ class Timer:
         self.start_time = 0
         self.elapsed_time = 0
         self.is_running = False
+
+    def resume(self):
+        if not self.is_running:
+            self.start_time = pygame.time.get_ticks() - (self.duration - self.elapsed_time)
+            self.is_running = True
